@@ -19,8 +19,14 @@ const YOLO_EVERY = 3; // run object detector every N frames
 // front cameras (lower resolution, harder autofocus, more motion) can't reliably
 // deliver — it was firing false "eyes closed" alerts on phones. Disable the whole
 // drowsiness feature on mobile/touch devices while keeping every other check.
-const isMobile = window.matchMedia('(max-width: 768px)').matches ||
-  /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+// Eye-closed / drowsiness detection relies on iris landmark precision that mobile
+// front cameras (lower resolution, harder autofocus, more motion) can't reliably
+// deliver — it was firing false "eyes closed" alerts on phones. Disable the whole
+// drowsiness feature on mobile/touch devices while keeping every other check.
+// NOTE: detected by device type (user agent / touch), not window width, so
+// resizing a laptop browser window narrower does not count as "mobile".
+const isMobile = /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 1 && window.matchMedia('(pointer: coarse)').matches);
 document.body.classList.toggle('no-drowsy', isMobile);
 
 const L_IRIS=473, L_INNER=362, L_OUTER=263, R_IRIS=468, R_INNER=33, R_OUTER=133;
