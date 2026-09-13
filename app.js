@@ -74,7 +74,7 @@ $('thGaze').textContent = GAZE_THRESHOLD;
 const DIAL_CIRC = 276.5; // matches r=44 ring in the current index.html dial svg
 
 function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toast.classList.remove('show'),2600); }
-function showTopToast(msg, durationMs=8000){
+function showTopToast(msg, durationMs=10000){
   if(!topToast || !topToastMsg) return;
   topToastMsg.textContent = msg;
   topToast.classList.add('show');
@@ -388,7 +388,9 @@ async function loadModels(){
     await new Promise(r=>setTimeout(r,350));
     loadScreen.classList.add('hidden');
     nameModal.classList.add('show');
-    showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 8000);
+    if(isMobile){
+      showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 10000);
+    }
   }catch(err){
     cancelAnimationFrame(progRAF);
     clearTimeout(slowTimer);
