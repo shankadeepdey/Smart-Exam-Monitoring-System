@@ -1,485 +1,289 @@
-:root{
-  --bg:#070B10;
-  --bg-alt:#0A0F16;
-  --panel:#0F151E;
-  --panel-2:#111926;
-  --raise:#152131;
-  --border:rgba(148,197,193,.14);
-  --border-soft:rgba(255,255,255,.06);
-  --text:#EAF2F4;
-  --text-dim:#93A4AE;
-  --text-faint:#5A6873;
-  --cyan:#2FE0C4;
-  --cyan-soft:#1FA090;
-  --cyan-dim:#0E4F48;
-  --cyan-glow:rgba(47,224,196,.35);
-  --amber:#F5A623;
-  --red:#EF4460;
-  --violet:#A78BFA;
-  --blue:#5B9BD5;
-  --radius-sm:8px;
-  --radius-md:12px;
-  --radius-lg:18px;
-  --font-ui:'IBM Plex Sans',system-ui,sans-serif;
-  --font-mono:'IBM Plex Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;}
-html,body{height:100%;}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:var(--font-ui);
-  -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-  font-size:14px;
-}
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
-}
-button{font-family:inherit;}
-::selection{background:var(--cyan);color:#04140F;}
-::-webkit-scrollbar{width:7px;height:7px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:var(--border-soft);border-radius:8px;}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Sentinel &mdash; Exam Proctoring Console</title>
+<meta name="theme-color" content="#070B10" />
 
-/* LOADING SCREEN  */
-#loadScreen{
-  position:fixed;inset:0;z-index:100;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 50% 30%, #0E1620 0%, #060A0F 70%);
-  gap:22px;overflow:hidden;
-  transition:opacity .5s ease, visibility .5s ease;
-}
-#loadScreen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
-.load-bg{
-  position:absolute;inset:-20%;
-  background:conic-gradient(from 0deg, rgba(47,224,196,.05), transparent 30%, rgba(91,155,213,.05), transparent 70%);
-  animation:swirl 22s linear infinite;
-}
-@keyframes swirl{to{transform:rotate(360deg);}}
-.brand-mark{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;}
-.brand-logo-card{width:88px;height:88px;display:flex;align-items:center;justify-content:center;margin-bottom:6px;
-  filter:drop-shadow(0 0 18px var(--cyan-glow));}
-.brand-logo-fill{width:100%;height:100%;background-image:url(logo.png);background-size:contain;background-repeat:no-repeat;background-position:center;}
-.brand-wordmark{font-size:32px;font-weight:600;letter-spacing:.02em;color:var(--text);}
-.brand-subline{font-size:13px;color:var(--text-dim);letter-spacing:.08em;}
-.load-track-wrap{position:relative;width:min(420px,80vw);}
-.load-track{
-  position:relative;height:34px;border:1px solid var(--border);border-radius:999px;
-  background:rgba(255,255,255,.02);overflow:hidden;display:flex;align-items:center;
-}
-#loadBar{
-  position:absolute;left:0;top:0;bottom:0;width:0%;
-  background:linear-gradient(90deg, var(--cyan-dim), var(--cyan));
-  box-shadow:0 0 16px var(--cyan-glow);
-  transition:width .35s ease;
-}
-#loadPct{position:relative;margin-left:auto;margin-right:14px;font-family:var(--font-mono);font-size:12.5px;color:var(--text);z-index:1;}
-#loadText{position:relative;font-family:var(--font-mono);font-size:12.5px;color:var(--text-dim);letter-spacing:.01em;}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"></noscript>
 
-/*  MODAL SHARED  */
-.modal-overlay{
-  position:fixed;inset:0;z-index:80;
-  background:rgba(4,6,9,.78);
-  backdrop-filter:blur(4px);
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;
-  opacity:0;visibility:hidden;pointer-events:none;
-  transition:opacity .25s ease, visibility .25s ease;
-}
-.modal-overlay.show{opacity:1;visibility:visible;pointer-events:auto;}
-.modal-card{
-  width:100%;max-width:460px;
-  background:linear-gradient(180deg, rgba(21,33,49,.9), rgba(15,21,30,.95));
-  border:1px solid var(--border);
-  border-radius:var(--radius-lg);
-  padding:30px 28px 26px;
-  box-shadow:0 0 0 1px rgba(47,224,196,.06), 0 30px 70px rgba(0,0,0,.55), 0 0 40px rgba(47,224,196,.08);
-}
-.completion-card{max-width:600px;max-height:88vh;overflow-y:auto;}
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:,">
 
-.step-track{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-.step-chip{font-size:11px;color:var(--text-faint);padding:5px 10px;border-radius:999px;border:1px solid var(--border-soft);}
-.step-chip.active{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(47,224,196,.08);}
-.step-sep{color:var(--text-faint);font-size:13px;}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 
-.modal-kicker{font-size:12px;color:var(--text-faint);font-weight:500;margin-bottom:10px;}
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js" defer></script>
+</head>
+<body>
 
-.modal-card h1{font-size:24px;margin:0 0 8px;font-weight:600;letter-spacing:-.01em;line-height:1.25;}
-.modal-card p.sub{color:var(--text-dim);font-size:13.5px;line-height:1.6;margin:0 0 22px;}
-.field-label{font-size:12px;color:var(--text-dim);margin-bottom:7px;display:block;}
-.field-input{
-  width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);
-  border-radius:var(--radius-sm);padding:13px 14px;color:var(--text);
-  font-size:15px;font-family:var(--font-ui);outline:none;
-  transition:border-color .15s ease, box-shadow .15s ease;
-}
-.field-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(47,224,196,.12);}
-.field-input::placeholder{color:var(--text-faint);}
-.field-hint{font-size:11.5px;color:var(--text-faint);margin-top:7px;min-height:15px;}
-.field-hint.err{color:var(--red);}
+<div id="loadScreen">
+  <div class="load-bg"></div>
+  <div class="brand-mark">
+    <div class="brand-logo-card"><div class="brand-logo-fill"></div></div>
+    <div class="brand-wordmark">Sentinel</div>
+    <div class="brand-subline">Proctoring System</div>
+  </div>
+  <div class="load-track-wrap">
+    <div class="load-track"><div id="loadBar"></div><span id="loadPct">0%</span></div>
+  </div>
+  <div id="loadText">initializing vision models&hellip;</div>
+</div>
 
-.btn{
-  border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer;
-  font-family:var(--font-ui);font-weight:600;font-size:14px;
-  padding:13px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  transition:filter .12s ease, background .15s ease, border-color .15s ease, transform .1s ease;
-  -webkit-tap-highlight-color:transparent;
-}
-.btn:active{transform:scale(.98);}
-.btn:focus-visible{outline:2px solid var(--cyan);outline-offset:1px;}
-.btn-primary{
-  background:linear-gradient(135deg, var(--cyan), var(--cyan-soft));
-  color:#04140F;width:100%;
-  box-shadow:0 6px 22px rgba(47,224,196,.25);
-}
-.btn-primary:hover{filter:brightness(1.06);}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;filter:none;box-shadow:none;}
-.btn-ghost{background:transparent;color:var(--text);border-color:var(--border);}
-.btn-ghost:hover{border-color:var(--text-faint);}
-.btn-tiny{padding:6px 10px;font-size:11.5px;font-weight:500;}
-.btn-danger{background:linear-gradient(135deg,var(--red),#B5324B);color:#2A0006;box-shadow:0 6px 22px rgba(239,68,96,.25);}
-.btn-outline-cyan{background:transparent;border-color:var(--cyan-dim);color:var(--cyan);}
-.btn-outline-cyan:hover{border-color:var(--cyan);background:rgba(47,224,196,.08);}
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <div class="step-track">
+      <span class="step-chip active">Step 1: Profile confirmation</span>
+      <span class="step-sep">&rsaquo;</span>
+      <span class="step-chip">Step 2: Session check</span>
+      <span class="step-sep">&rsaquo;</span>
+      <span class="step-chip">Step 3: Final setup</span>
+    </div>
+    <h1>Before you begin</h1>
+    <p class="sub">Enter your full name exactly as it should appear on your exam integrity report. Your camera will be used only to monitor this session — nothing leaves your device except the files you choose to download.</p>
+    <label class="field-label" for="studentName">Full name</label>
+    <input class="field-input" id="studentName" placeholder="e.g. Shankadeep Dey" autocomplete="name" maxlength="60" />
+    <div class="field-hint" id="nameHint">&nbsp;</div>
+    <ul class="modal-checklist">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Camera and microphone access required</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Browser-based — no installation needed</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Session data is locally processed</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Automated data processing and report generation</li>
+    </ul>
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" id="nameSubmit" disabled>Continue &amp; enable camera</button>
+    </div>
+  </div>
+</div>
 
-.modal-checklist{margin:20px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px;}
-.modal-checklist li{display:flex;align-items:flex-start;gap:9px;font-size:12.5px;color:var(--text-dim);line-height:1.5;}
-.modal-checklist svg{width:14px;height:14px;flex:none;margin-top:2px;stroke:var(--cyan);}
-.guide-card{max-width:560px;}
-.guide-video{width:100%;display:block;margin:16px 0 4px;border-radius:var(--radius-sm);background:#000;border:1px solid var(--border);max-height:320px;}
-.guide-dont-list{margin-top:14px;}
-.guide-dont-list svg{stroke:var(--red);}
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card guide-card">
+    <div class="modal-kicker">Session guidelines</div>
+    <h1 id="guideName">A few things to avoid</h1>
+    <p class="sub">Quick watch — this shows exactly what Sentinel flags during a session, so there are no surprises.</p>
 
-/*  APP SHELL  */
-#app{display:none;min-height:100vh;}
-#app.active{display:flex;}
+    <video id="demoVideo" class="guide-video" src="demo-what-not-to-do.mp4" controls playsinline preload="auto"></video>
+    <button class="btn btn-ghost" id="replayVideoBtn" style="width:100%;margin-top:10px;display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" style="width:15px;height:15px;stroke:currentColor;margin-right:6px;"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+      Watch again
+    </button>
 
-/*  Sidebar  */
-.sidebar{
-  width:236px;flex:none;background:var(--panel);border-right:1px solid var(--border-soft);
-  display:flex;flex-direction:column;padding:18px 16px;
-}
-.sidebar-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
-.brand-mark-mini{width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--cyan-dim);display:flex;align-items:center;justify-content:center;background:rgba(47,224,196,.06);}
-.brand-mark-mini svg{width:17px;height:17px;stroke:var(--cyan);}
-.brand-mark-title{font-size:13.5px;font-weight:600;}
-.sidebar-profile{display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 8px;border-bottom:1px solid var(--border-soft);margin-bottom:14px;}
-.avatar{width:56px;height:56px;border-radius:50%;background:var(--raise);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
-.avatar svg{width:26px;height:26px;stroke:var(--text-dim);}
-.sidebar-profile .who{font-size:14px;font-weight:600;}
-.sidebar-profile .who-sub{font-size:11.5px;color:var(--text-faint);margin-top:2px;}
-.sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1;}
-.nav-btn{
-  display:flex;align-items:center;gap:10px;width:100%;text-align:left;
-  background:transparent;border:none;border-radius:var(--radius-sm);
-  padding:11px 12px;color:var(--text-dim);font-size:13.5px;font-weight:500;cursor:pointer;
-  transition:background .15s ease, color .15s ease;
-}
-.nav-btn svg{width:17px;height:17px;stroke:currentColor;flex:none;}
-.nav-btn:hover{background:var(--raise);color:var(--text);}
-.nav-btn.active{background:rgba(47,224,196,.1);color:var(--cyan);}
-.sidebar-status{display:flex;align-items:center;gap:10px;padding:12px;border-top:1px solid var(--border-soft);margin-top:10px;}
-.status-dot{width:9px;height:9px;border-radius:50%;background:var(--text-faint);flex:none;}
-.status-dot.on{background:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);animation:pulse 1.8s ease-in-out infinite;}
-.sidebar-status-label{font-size:11px;color:var(--text-faint);}
-.sidebar-status-value{font-size:12.5px;font-weight:600;color:var(--text-dim);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    <ul class="modal-checklist guide-dont-list">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Turning or holding your head away from the screen</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Picking up, glancing at, or using your phone</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Covering your face with your hand, hair, or an object</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Letting your eyes stay closed for extended periods</li>
+    </ul>
 
-/*  Mobile tabs  */
-.mobile-tabs{display:none;}
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" id="guideContinue">I understand — continue to exam</button>
+    </div>
+  </div>
+</div>
 
-.main-area{flex:1;display:flex;flex-direction:column;min-width:0;}
+<div id="app">
 
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:11px 22px;border-bottom:1px solid var(--border-soft);
-  background:var(--bg);position:sticky;top:0;z-index:40;
-}
-.topbar-title{font-size:17px;font-weight:600;}
-.topbar-right{display:flex;align-items:center;gap:8px;}
-.chip{font-family:var(--font-mono);font-size:11.5px;color:var(--text-dim);border:1px solid var(--border-soft);padding:6px 10px;border-radius:var(--radius-sm);}
-.status-pill{
-  font-family:var(--font-mono);font-size:11px;padding:6px 11px;border-radius:999px;border:1px solid var(--border);
-  display:flex;align-items:center;gap:7px;color:var(--text-dim);
-}
-.status-pill .pulse{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
-.status-pill.live{color:var(--red);border-color:rgba(239,68,96,.4);}
-.status-pill.live .pulse{background:var(--red);animation:pulse 1.4s ease-in-out infinite;}
-.icon-btn{width:34px;height:34px;border-radius:var(--radius-sm);background:transparent;border:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);}
-.icon-btn:hover{color:var(--text);border-color:var(--text-faint);}
-.icon-btn svg{width:16px;height:16px;stroke:currentColor;}
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark-mini"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4Z"/></svg></div>
+      <div>
+        <div class="brand-mark-title">Sentinel Console</div>
+      </div>
+    </div>
 
-.view{padding:10px 22px 14px;}
-.view[hidden]{display:none;}
+    <div class="sidebar-profile">
+      <div class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+      <div class="who" id="whoLabel">&mdash;</div>
+      <div class="who-sub">Exam session</div>
+    </div>
 
-/* alert chips row */
-.alerts-row{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px;margin-bottom:8px;}
-.alert-chip{
-  display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border-soft);
-  border-radius:var(--radius-sm);padding:7px 10px;min-height:0;
-}
-.alert-chip svg{width:14px;height:14px;stroke:var(--cyan);flex:none;}
-.alert-chip.warn svg{stroke:var(--red);}
-.alert-chip b{display:block;font-size:13px;font-weight:700;line-height:1.1;}
-.alert-chip span{display:block;font-size:9.5px;color:var(--text-faint);margin-top:0;}
-.eye-chip{flex-direction:column;align-items:stretch;gap:2px;padding:6px 10px;justify-content:center;}
-.eye-chip-head{display:flex;align-items:baseline;justify-content:space-between;font-size:10px;color:var(--text-dim);}
-.eye-chip-head b{font-family:var(--font-mono);font-size:12px;color:var(--cyan);}
-.chart-box-mini{height:18px;}
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-view="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Reports
+      </button>
+    </nav>
 
-.dash-grid{display:grid;grid-template-columns:1fr 320px;gap:10px;align-items:start;}
+    <div class="sidebar-status">
+      <span class="status-dot" id="sideStatusDot"></span>
+      <div>
+        <div class="sidebar-status-label">Monitoring</div>
+        <div class="sidebar-status-value" id="sideStatusValue">Standby</div>
+      </div>
+    </div>
+  </aside>
 
-/*  Stage / camera  */
-.stage-col{display:flex;flex-direction:column;gap:8px;}
-.stage{
-  position:relative;width:100%;aspect-ratio:16/7.4;
-  background:#04060777;border-radius:var(--radius-lg);overflow:hidden;
-  border:1px solid var(--border);
-  box-shadow:0 0 0 1px rgba(47,224,196,.05), 0 20px 50px rgba(0,0,0,.4);
-  transition:box-shadow .3s ease;
-}
-.stage.monitoring{box-shadow:0 0 0 1px var(--cyan-dim), 0 0 30px rgba(47,224,196,.15), 0 20px 50px rgba(0,0,0,.4);}
-.stage:fullscreen{border-radius:0;aspect-ratio:auto;}
-.stage video, .stage canvas.overlay{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
-.stage video{background:#000;}
-.stage-idle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-dim);z-index:5;background:var(--panel);}
-.stage-idle svg{width:36px;height:36px;stroke:var(--text-faint);}
-.stage-idle p{margin:0;font-size:13px;max-width:270px;text-align:center;line-height:1.5;}
+  <nav class="mobile-tabs">
+    <button class="nav-btn active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-view="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <span>Reports</span>
+    </button>
+  </nav>
 
-.fs-btn{
-  position:absolute;top:10px;right:10px;z-index:22;width:34px;height:34px;border-radius:var(--radius-sm);
-  background:rgba(7,11,16,.6);border:1px solid var(--border);backdrop-filter:blur(6px);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);
-  transition:background .15s ease, border-color .15s ease;
-}
-.fs-btn:hover{border-color:var(--cyan-dim);background:rgba(7,11,16,.85);}
-.fs-btn svg{width:15px;height:15px;stroke:currentColor;}
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-title" id="viewTitle">Dashboard</div>
+      <div class="topbar-right">
+        <span class="chip" id="clockNow">&mdash;</span>
+        <span class="chip" id="sessionChip">Session 00:00:00</span>
+        <div class="status-pill" id="statusPill"><span class="pulse"></span><span id="statusText">Standby</span></div>
+        <button class="icon-btn" id="serialBtn" title="Connect hardware indicator (optional, Chrome desktop)" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 9h16M4 15h16M9 4v4M15 4v4M9 16v4M15 16v4"/></svg>
+        </button>
+      </div>
+    </header>
 
-.alert-stack{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;flex-direction:column;}
-.alert-banner{
-  overflow:hidden;max-height:0;opacity:0;
-  transition:max-height .3s ease, opacity .25s ease;
-  font-family:var(--font-mono);font-size:12px;
-  padding:0 14px;display:flex;align-items:center;gap:9px;
-  border-bottom:1px solid rgba(0,0,0,.15);
-}
-.alert-banner.show{max-height:42px;opacity:1;padding:11px 14px;}
-.alert-banner b{font-family:var(--font-ui);font-weight:700;}
-.alert-banner.level-crit{background:var(--red);color:#2A0006;}
-.alert-banner.level-warn{background:var(--amber);color:#2A1A00;}
-.alert-banner.level-phone{background:var(--red);color:#2A0006;}
-.alert-banner.level-cover{background:var(--violet);color:#1D0033;}
-.alert-banner.level-drowsy{background:var(--blue);color:#00122A;}
+    <section class="view" id="viewDashboard">
 
-.flash-ring{position:absolute;inset:0;pointer-events:none;z-index:15;border-radius:inherit;box-shadow:inset 0 0 0 0 transparent;transition:box-shadow .2s ease;}
-.flash-ring.on{box-shadow:inset 0 0 0 3px var(--flash-color, var(--red));}
-.screen-flash{position:absolute;inset:0;z-index:18;pointer-events:none;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;background:var(--flash-bg, rgba(200,0,20,.5));opacity:0;transition:opacity .15s ease;}
-.screen-flash.show{opacity:1;}
-.screen-flash-msg{font-family:var(--font-ui);font-weight:700;font-size:clamp(18px,3.6vw,36px);color:#fff;letter-spacing:-.01em;}
+      <div class="alerts-row alerts-row-compact">
+        <div class="alert-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><div><b id="statTotalAlerts">0</b><span>Total alerts</span></div></div>
+        <div class="alert-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><div><b id="statHeadTurns">0</b><span>Head turns</span></div></div>
+        <div class="alert-chip eye-chip">
+          <div class="eye-chip-head"><span>Eye ratio</span><b id="mEarChip">&ndash;</b></div>
+          <div class="chart-box chart-box-mini"><canvas id="eyeRatioChart"></canvas></div>
+        </div>
+      </div>
 
-.stage-footer-hint{display:flex;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:11px;color:var(--text-faint);padding:2px 2px 0;}
-.hint-thresholds{display:flex;align-items:center;gap:14px;}
-.hint-item{display:inline-flex;align-items:baseline;gap:5px;}
-.hint-item b{font-weight:600;color:var(--text-dim);}
+      <div class="dash-grid">
+        <div class="stage-col">
+          <div class="stage" id="stage">
+            <video id="video" playsinline muted></video>
+            <canvas class="overlay" id="overlay"></canvas>
+            <div class="flash-ring" id="flashRing"></div>
+            <div class="screen-flash" id="screenFlash"><div class="screen-flash-msg" id="screenFlashMsg"></div></div>
+            <div class="alert-stack" id="alertStack"></div>
+            <button class="fs-btn" id="fsBtn" title="Fullscreen camera">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            </button>
+            <div class="stage-idle" id="stageIdle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="2" y="6" width="15" height="12" rx="2"/><path d="m22 8-5 4 5 4V8Z"/></svg>
+              <p>Camera preview will appear here once your session starts. Position yourself so your face is fully visible.</p>
+            </div>
+          </div>
+          <div class="stage-footer-hint">
+            <span class="hint-fps"><span id="fpsHint">&mdash;</span></span>
+            <div class="hint-thresholds">
+              <span class="hint-item">Head turn <b id="thYaw">22&deg;</b></span>
+              <span class="hint-item">Gaze offset <b id="thGaze">0.17</b> / 2s</span>
+            </div>
+          </div>
 
-.dock{display:flex;gap:10px;margin-top:2px;}
-.dock .btn{border-radius:var(--radius-sm);flex:1;padding:11px 18px;}
-.dock .btn.icon-only{flex:none;width:42px;padding:11px;}
+          <div class="dock">
+            <button class="btn btn-outline-cyan icon-only" id="muteBtn" title="Mute alert sounds">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" id="muteIcon"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19 9a5 5 0 0 1 0 6M22 6a9 9 0 0 1 0 12"/></svg>
+            </button>
+            <button class="btn btn-primary" id="startBtn">Start monitoring</button>
+            <button class="btn btn-danger" id="endBtn" style="display:none;">End session</button>
+          </div>
+        </div>
 
-/*  Sidebar cards (right column)  */
-.side{display:flex;flex-direction:column;gap:8px;}
-.panel{
-  background:var(--panel);border:1px solid var(--border-soft);border-radius:var(--radius-md);padding:10px 14px;
-}
-.panel h3{margin:0 0 6px;font-size:12px;color:var(--text-dim);font-weight:600;display:flex;align-items:center;justify-content:space-between;}
+        <div class="side">
+          <div class="panel panel-score">
+            <h3>Suspicion score</h3>
+            <div class="dial-wrap">
+              <div class="dial">
+                <svg width="104" height="104" viewBox="0 0 104 104">
+                  <circle class="dial-track" cx="52" cy="52" r="44" fill="none" stroke-width="9"/>
+                  <circle class="dial-fill" id="dialFill" cx="52" cy="52" r="44" fill="none" stroke-width="9" stroke-dasharray="276.5" stroke-dashoffset="276.5"/>
+                </svg>
+                <div class="dial-num"><b id="scoreNum">0</b></div>
+              </div>
+              <div class="dial-meta">
+                <div class="risk" id="riskLabel">Low risk</div>
+                <div class="turns" id="turnsLabel">0 head turns</div>
+              </div>
+            </div>
+          </div>
 
-.panel-score{
-  background:linear-gradient(180deg, rgba(15,21,30,.55), rgba(10,14,20,.5));
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  border-color:rgba(47,224,196,.32);
-  box-shadow:0 0 26px rgba(47,224,196,.14), inset 0 0 18px rgba(47,224,196,.05);
-}
-.dial-wrap{display:flex;align-items:center;gap:16px;}
-.dial{position:relative;width:78px;height:78px;flex:none;display:flex;align-items:center;justify-content:center;}
-.dial svg{display:block;transform:rotate(-90deg);margin:0 auto;}
-.dial-track{stroke:var(--border-soft);}
-.dial-fill{stroke:var(--cyan);stroke-linecap:round;transition:stroke-dashoffset .5s ease, stroke .3s ease;filter:drop-shadow(0 0 6px var(--cyan-glow));}
-.dial-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
-.dial-num b{font-size:21px;font-family:var(--font-mono);font-weight:600;}
-.dial-num b::after{content:'%';font-size:.5em;margin-left:1px;color:var(--text-faint);font-weight:500;}
-.dial-meta{display:flex;flex-direction:column;gap:4px;}
-.dial-meta .risk{font-size:13px;font-weight:600;color:var(--cyan);}
-.dial-meta .turns{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+          <div class="panel">
+            <h3>Session timer</h3>
+            <div class="timer-box"><b id="sessionTimer">00:00:00</b><span id="sessionState">not started</span></div>
+          </div>
 
-.timer-box{display:flex;align-items:baseline;justify-content:space-between;}
-.timer-box b{font-family:var(--font-mono);font-size:20px;font-weight:600;}
-.timer-box span{font-size:11px;color:var(--text-faint);}
+          <div class="panel">
+            <h3>Live signals</h3>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--cyan)"></span>Face detected</div><div class="val ok" id="mFace">&ndash;</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--blue)"></span>Head direction</div><div class="val" id="mHead">center</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--violet)"></span>Gaze direction</div><div class="val" id="mGaze">center</div></div>
+            <div class="metric-row" id="rowEyeOpenness"><div class="lbl"><span class="sw" style="background:var(--amber)"></span>Eye openness</div><div class="val" id="mEar">&ndash;</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--red)"></span>Phone detected</div><div class="val" id="mPhone">no</div></div>
+          </div>
 
-.chart-box{height:60px;position:relative;}
-.chart-box canvas{width:100% !important;height:100% !important;}
+          <div class="panel">
+            <h3>Detailed event log <span id="logCount" style="color:var(--text-faint);font-weight:400;">0 events</span></h3>
+            <div class="log-list" id="logList"><div class="log-empty">No incidents yet &mdash; stay focused and you'll see nothing here.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-.metric-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border-soft);}
-.metric-row:last-child{border-bottom:none;}
-.metric-row .lbl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);}
-.metric-row .lbl .sw{width:7px;height:7px;border-radius:50%;flex:none;}
-.metric-row .val{font-family:var(--font-mono);font-size:12px;font-weight:600;}
-.metric-row .val.ok{color:var(--cyan);}
-.metric-row .val.bad{color:var(--red);}
+    <section class="view" id="viewReports" hidden>
+      <div class="panel reports-panel">
+        <h3>Completed sessions <button class="btn btn-ghost btn-tiny" id="clearReportsBtn">Clear history</button></h3>
+        <div id="reportsEmpty" class="log-empty" style="padding:20px 0;">No sessions completed yet. Reports appear here after you end a monitoring session.</div>
+        <div id="reportsList" class="reports-list"></div>
+      </div>
+    </section>
+  </div>
+</div>
 
-.log-list{display:flex;flex-direction:column-reverse;gap:0;max-height:110px;overflow-y:auto;padding-right:2px;}
-.log-item{display:flex;align-items:flex-start;gap:9px;font-size:11px;padding:7px 0;border-bottom:1px solid var(--border-soft);}
-.log-item:first-child{border-bottom:none;}
-.log-item .t{font-family:var(--font-mono);color:var(--text-faint);flex:none;min-width:48px;padding-top:1px;}
-.log-item .m{color:var(--text-dim);line-height:1.4;}
-.log-item .m b{color:var(--text);font-weight:600;}
-.log-empty{font-size:11.5px;color:var(--text-faint);}
+<div class="modal-overlay" id="completionModal">
+  <div class="modal-card completion-card">
+    <div class="done-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="modal-kicker">Session complete</div>
+    <h1 id="doneName">Session summary</h1>
+    <p class="sub">Your exam integrity report has been compiled. Review the numbers below, then download your files.</p>
+    <div class="summary-grid" id="summaryGrid"></div>
 
-.eye-ratio-tag{
-  position:absolute;z-index:12;font-family:var(--font-mono);font-size:10.5px;font-weight:600;
-  background:rgba(7,11,16,.8);border:1px solid var(--border);color:var(--violet);padding:3px 7px;border-radius:var(--radius-sm);
-  transform:translate(-50%,-140%);white-space:nowrap;pointer-events:none;
-}
+    <div class="download-row">
+      <button class="download-btn" id="dlReport">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <div class="tx"><b>Integrity report (.docx)</b><span id="reportSub">Preparing&hellip;</span></div>
+        <div class="go" id="reportGo"><div class="spin"></div></div>
+      </button>
+      <button class="download-btn" id="dlZip">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg></div>
+        <div class="tx"><b>Evidence photos (.zip)</b><span id="zipSub">Preparing&hellip;</span></div>
+        <div class="go" id="zipGo"><div class="spin"></div></div>
+      </button>
+    </div>
 
-/*  Reports view  */
-.reports-panel{max-width:1000px;}
-.reports-list{display:flex;flex-direction:column;gap:1px;background:var(--border-soft);border-radius:var(--radius-sm);overflow:hidden;}
-.report-row{display:flex;align-items:center;gap:16px;background:var(--panel-2);padding:14px 16px;flex-wrap:wrap;}
-.report-main{flex:1;min-width:140px;}
-.report-name{font-size:13.5px;font-weight:600;}
-.report-date{font-size:11px;color:var(--text-faint);margin-top:2px;}
-.report-stat{text-align:right;min-width:64px;}
-.report-stat span{display:block;font-family:var(--font-mono);font-size:14px;font-weight:600;}
-.report-stat small{display:block;font-size:10px;color:var(--text-faint);margin-top:1px;}
+    <div class="analytics-heading">Detailed session analytics</div>
+    <div class="analytics-grid">
+      <div class="analytics-card">
+        <div class="analytics-title">Alert frequency by type</div>
+        <div class="chart-box"><canvas id="alertFreqChart"></canvas></div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-title">Head turn direction</div>
+        <div class="chart-box"><canvas id="headTurnDirChart"></canvas></div>
+      </div>
+    </div>
 
-/*  COMPLETION MODAL  */
-.done-badge{width:44px;height:44px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 0 20px var(--cyan-glow);}
-.done-badge svg{width:20px;height:20px;stroke:#04140F;stroke-width:3;}
-.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 20px;}
-.summary-cell{background:var(--panel-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 14px;}
-.summary-cell .n{font-family:var(--font-mono);font-size:20px;font-weight:700;}
-.summary-cell .l{font-size:11px;color:var(--text-faint);margin-top:2px;}
-.download-row{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
-.download-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--panel-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:13px 14px;cursor:pointer;transition:border-color .15s ease;color:var(--text);}
-.download-btn:hover{border-color:var(--cyan-dim);}
-.download-btn .ic{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--panel);display:flex;align-items:center;justify-content:center;flex:none;}
-.download-btn .ic svg{width:15px;height:15px;stroke:var(--cyan);}
-.download-btn .tx b{display:block;font-size:13px;font-weight:600;}
-.download-btn .tx span{display:block;font-size:11px;color:var(--text-faint);margin-top:1px;}
-.download-btn .go{margin-left:auto;color:var(--text-faint);}
-.download-btn.pending{opacity:.5;pointer-events:none;}
-.spin{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--cyan);animation:spin .7s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
+    <div style="margin-top:18px;">
+      <button class="btn btn-ghost" style="width:100%;" id="closeCompletion">Close &amp; return to dashboard</button>
+    </div>
+  </div>
+</div>
 
-.analytics-heading{font-size:13.5px;font-weight:600;margin:22px 0 12px;color:var(--text);}
-.analytics-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.analytics-card{background:var(--panel-2);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:14px;}
-.analytics-title{font-size:12px;color:var(--text-dim);margin-bottom:10px;}
-.analytics-card .chart-box{height:130px;}
+<div class="toast" id="toast"></div>
+<div class="top-toast" id="topToast"><span id="topToastMsg"></span></div>
 
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(6px);
-  background:var(--raise);border:1px solid var(--border);color:var(--text);
-  padding:10px 16px;border-radius:999px;font-size:12px;z-index:90;
-  opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;
-  font-family:var(--font-mono);
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-.top-toast{
-  position:fixed;top:50%;left:50%;transform:translate(-50%,-260%);
-  background:var(--blue);color:var(--red);border:1px solid rgba(0,0,0,.12);
-  padding:11px 18px;border-radius:999px;font-size:12.5px;font-weight:600;z-index:110;
-  max-width:min(420px,88vw);text-align:center;line-height:1.4;
-  box-shadow:0 10px 30px rgba(0,0,0,.4);
-  opacity:0;pointer-events:none;transition:opacity .4s ease, transform .4s ease;
-}
-.top-toast.show{opacity:1;transform:translate(-50%,-50%);}
-
-/*  RESPONSIVE  */
-@media(max-width:1200px){
-  .dash-grid{grid-template-columns:1fr 300px;}
-}
-@media(max-width:1024px){
-  .dash-grid{grid-template-columns:1fr;}
-  .alerts-row{grid-template-columns:repeat(2,1fr);}
-  .eye-chip{grid-column:1 / -1;}
-}
-@media(max-width:768px){
-  /* #app is a row-flex by default (sidebar | tabs | content). With the sidebar
-     hidden, the tab bar and the main content must stack top-to-bottom instead
-     of sitting side-by-side — otherwise the tab bar stretches to full page
-     height as a thin vertical strip instead of a compact top bar. */
-  #app.active{flex-direction:column;}
-  .sidebar{display:none;}
-  .mobile-tabs{
-    display:flex;position:sticky;top:0;z-index:41;background:var(--bg);
-    border-bottom:1px solid var(--border-soft);padding:6px 10px;gap:8px;
-    width:100%;flex:none;max-width:100vw;
-  }
-  .mobile-tabs .nav-btn{
-    flex:1;flex-direction:row;gap:6px;align-items:center;justify-content:center;
-    font-size:12.5px;padding:9px 6px;border-radius:var(--radius-sm);max-width:180px;
-  }
-  .mobile-tabs .nav-btn svg{width:16px;height:16px;}
-  .topbar{padding:10px 14px;flex-wrap:nowrap;gap:8px;}
-  .topbar-title{font-size:15px;flex:none;}
-  .topbar-right{gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;justify-content:flex-end;}
-  .topbar-right::-webkit-scrollbar{display:none;}
-  .chip{display:none;}
-  .status-pill{flex:none;white-space:nowrap;}
-  .view{padding:12px 12px 28px;}
-
-  /* alert chips: two even columns, eye ratio card removed on mobile (see JS) */
-  .alerts-row{grid-template-columns:1fr 1fr;gap:8px;}
-  .alert-chip{padding:10px 12px;}
-  .alert-chip b{font-size:16px;}
-  .eye-chip{display:none;}
-
-  /* camera stage: taller, phone-friendly ratio, content never clipped */
-  .dash-grid{gap:12px;}
-  .stage{aspect-ratio:3/4;max-height:62vh;border-radius:var(--radius-md);}
-  .stage-idle p{font-size:12.5px;max-width:220px;}
-  .fs-btn{top:8px;right:8px;width:32px;height:32px;}
-
-  /* alert banners: wrap, never sit under the fullscreen button, readable size */
-  .alert-stack{padding-right:44px;}
-  .alert-banner{font-size:11px;line-height:1.35;flex-wrap:wrap;padding:0 10px;}
-  .alert-banner.show{padding:9px 10px;max-height:64px;}
-  .screen-flash-msg{font-size:clamp(15px,5vw,22px);}
-
-  .stage-footer-hint{flex-direction:column;align-items:flex-start;gap:4px;}
-  .hint-thresholds{gap:10px;flex-wrap:wrap;}
-
-  .dock{gap:8px;}
-  .dock .btn{padding:12px 10px;font-size:13.5px;}
-  .dock .btn.icon-only{width:44px;}
-
-  .panel{padding:12px;}
-  .dial-wrap{gap:14px;}
-  .dial{width:70px;height:70px;}
-  .dial svg{width:70px;height:70px;}
-
-  .analytics-grid{grid-template-columns:1fr;}
-  .summary-grid{grid-template-columns:1fr 1fr;}
-  .modal-card{padding:22px 18px 20px;}
-  .step-track{display:none;}
-  .report-row{gap:10px;padding:12px;}
-  .report-stat{min-width:52px;}
-  .report-stat span{font-size:13px;}
-}
-@media(max-width:420px){
-  .alert-chip b{font-size:15px;}
-  .dock{flex-wrap:wrap;}
-  .dock .btn-primary, .dock .btn-danger{flex:1 1 100%;order:2;}
-  .dock .icon-only{order:1;}
-  .stage{aspect-ratio:1/1.05;}
-}
-
-/* eye-ratio behaviour disabled on touch/mobile devices via JS toggling this class on body */
-body.no-drowsy .eye-chip,
-body.no-drowsy #rowEyeOpenness,
-body.no-drowsy .alert-banner.level-drowsy{display:none !important;}
-
-.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+<script type="module" src="app.js"></script>
+</body>
+</html>
