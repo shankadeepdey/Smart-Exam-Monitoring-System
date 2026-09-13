@@ -395,7 +395,7 @@ async function loadModels(){
     loadScreen.classList.add('hidden');
     nameModal.classList.add('show');
     if(isMobile){
-      showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 10000);
+      showTopToast('For better experience open Sentinel in laptop \ud83d\udcbb', 10000);
     }
   }catch(err){
     cancelAnimationFrame(progRAF);
