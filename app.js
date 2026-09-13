@@ -1,5 +1,3 @@
-
-
 import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, ImageRun,
          HeadingLevel, AlignmentType, BorderStyle, WidthType, ShadingType, PageBreak }
@@ -16,6 +14,14 @@ const COVER_TIME_LIMIT = 1.0, COVER_TIMEOUT = 15.0, COVER_COOLDOWN = 5, COVER_MA
 const PHONE_TIME_LIMIT = 1.0, PHONE_COOLDOWN = 6, PHONE_MAX = 15, PHONE_CONF = 0.5;
 const HEAD_MAX = 7;
 const YOLO_EVERY = 3; // run object detector every N frames
+
+// Eye-closed / drowsiness detection relies on iris landmark precision that mobile
+// front cameras (lower resolution, harder autofocus, more motion) can't reliably
+// deliver — it was firing false "eyes closed" alerts on phones. Disable the whole
+// drowsiness feature on mobile/touch devices while keeping every other check.
+const isMobile = window.matchMedia('(max-width: 768px)').matches ||
+  /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+document.body.classList.toggle('no-drowsy', isMobile);
 
 const L_IRIS=473, L_INNER=362, L_OUTER=263, R_IRIS=468, R_INNER=33, R_OUTER=133;
 const R_EAR_PTS=[33,160,158,133,153,144], L_EAR_PTS=[362,385,387,263,373,380];
@@ -140,6 +146,7 @@ const sparklineOpts = {
 };
 function initLiveCharts(){
   if(typeof Chart==='undefined') return;
+  if(isMobile) return; // eye-ratio sparkline is hidden on mobile, skip building it
   const eyeCanvas = $('eyeRatioChart');
   if(eyeCanvas && !eyeChart){
     eyeChart = new Chart(eyeCanvas, { type:'line', data:{ labels:[], datasets:[{ data:[], borderColor:'#2FE0C4', borderWidth:2, tension:.35, fill:true, backgroundColor:'rgba(47,224,196,.12)' }] }, options: sparklineOpts });
@@ -564,33 +571,40 @@ async function loop(){
     S.ear = eyeAspectRatio(lm);
     mEar.textContent = S.ear.toFixed(2);
     if(mEarChip) mEarChip.textContent = S.ear.toFixed(2);
-    if(S.ear < EAR_THRESHOLD){
-      if(S.eyesClosedSince===null){ S.eyesClosedSince=tSec; S.drowsyAlerted=false; }
-      const ed = tSec-S.eyesClosedSince;
-      S.drowsyActive = ed>=EAR_TIME_LIMIT;
-      if(S.drowsyActive){
-        showBanner('drowsy','eyes closed — open your eyes!', true);
-        playSound('drowsy',4);
-        if(!S.drowsyAlerted && S.drowsyEvidence.length<DROWSY_MAX && (tSec-(S.lastPhotoTime.drowsy||0))>=DROWSY_COOLDOWN){
-          S.drowsyAlerted=true; S.lastPhotoTime.drowsy=tSec;
-          pushEvidence(S.drowsyEvidence, captureEvidence('OPEN YOUR EYES!','rgba(20,60,180,.85)'), DROWSY_MAX);
-          addLog('drowsy', `Eyes closed, photo ${S.drowsyEvidence.length}/${DROWSY_MAX}`);
-          triggerFullFlash('drowsy', 'OPEN YOUR EYES!', 2000);
+    // Drowsiness / eyes-closed detection is disabled on mobile — see isMobile above.
+    if(!isMobile){
+      if(S.ear < EAR_THRESHOLD){
+        if(S.eyesClosedSince===null){ S.eyesClosedSince=tSec; S.drowsyAlerted=false; }
+        const ed = tSec-S.eyesClosedSince;
+        S.drowsyActive = ed>=EAR_TIME_LIMIT;
+        if(S.drowsyActive){
+          showBanner('drowsy','eyes closed — open your eyes!', true);
+          playSound('drowsy',4);
+          if(!S.drowsyAlerted && S.drowsyEvidence.length<DROWSY_MAX && (tSec-(S.lastPhotoTime.drowsy||0))>=DROWSY_COOLDOWN){
+            S.drowsyAlerted=true; S.lastPhotoTime.drowsy=tSec;
+            pushEvidence(S.drowsyEvidence, captureEvidence('OPEN YOUR EYES!','rgba(20,60,180,.85)'), DROWSY_MAX);
+            addLog('drowsy', `Eyes closed, photo ${S.drowsyEvidence.length}/${DROWSY_MAX}`);
+            triggerFullFlash('drowsy', 'OPEN YOUR EYES!', 2000);
+          }
         }
+      } else {
+        S.eyesClosedSince=null; S.drowsyAlerted=false;
+        if(S.drowsyActive){ S.drowsyActive=false; hideBanner('drowsy'); }
       }
-    } else {
-      S.eyesClosedSince=null; S.drowsyAlerted=false;
-      if(S.drowsyActive){ S.drowsyActive=false; hideBanner('drowsy'); }
+    } else if(S.drowsyActive){
+      S.eyesClosedSince=null; S.drowsyAlerted=false; S.drowsyActive=false; hideBanner('drowsy');
     }
 
-    const rect = overlay.getBoundingClientRect();
-    const tagX = rect.left + (1-lm[10].x)*rect.width;
-    const tagY = rect.top + lm[10].y*rect.height;
-    const tag=document.createElement('div'); tag.className='eye-ratio-tag';
-    tag.style.left=tagX+'px'; tag.style.top=tagY+'px';
-    tag.textContent = 'Eye Ratio '+Math.round(S.ear*100);
-    document.body.appendChild(tag);
-    setTimeout(()=>tag.remove(), 120);
+    if(!isMobile){
+      const rect = overlay.getBoundingClientRect();
+      const tagX = rect.left + (1-lm[10].x)*rect.width;
+      const tagY = rect.top + lm[10].y*rect.height;
+      const tag=document.createElement('div'); tag.className='eye-ratio-tag';
+      tag.style.left=tagX+'px'; tag.style.top=tagY+'px';
+      tag.textContent = 'Eye Ratio '+Math.round(S.ear*100);
+      document.body.appendChild(tag);
+      setTimeout(()=>tag.remove(), 120);
+    }
   } else {
     mHead.textContent='—'; mGaze.textContent='—'; mEar.textContent='—';
     if(mEarChip) mEarChip.textContent='—';

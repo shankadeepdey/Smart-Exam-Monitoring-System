@@ -404,24 +404,63 @@ button{font-family:inherit;}
   }
   .mobile-tabs .nav-btn{flex:1;flex-direction:column;gap:4px;align-items:center;font-size:11px;padding:8px 4px;}
   .mobile-tabs .nav-btn svg{width:18px;height:18px;}
-  .topbar{padding:12px 16px;flex-wrap:wrap;gap:8px;}
-  .topbar-title{font-size:16px;}
-  .topbar-right{gap:6px;flex-wrap:wrap;}
+  .topbar{padding:10px 14px;flex-wrap:nowrap;gap:8px;}
+  .topbar-title{font-size:15px;flex:none;}
+  .topbar-right{gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;justify-content:flex-end;}
+  .topbar-right::-webkit-scrollbar{display:none;}
   .chip{display:none;}
-  .view{padding:14px 14px 32px;}
-  .alerts-row{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .alert-chip{padding:11px 12px;}
+  .status-pill{flex:none;white-space:nowrap;}
+  .view{padding:12px 12px 28px;}
+
+  /* alert chips: two even columns, eye ratio card removed on mobile (see JS) */
+  .alerts-row{grid-template-columns:1fr 1fr;gap:8px;}
+  .alert-chip{padding:10px 12px;}
   .alert-chip b{font-size:16px;}
+  .eye-chip{display:none;}
+
+  /* camera stage: taller, phone-friendly ratio, content never clipped */
+  .dash-grid{gap:12px;}
+  .stage{aspect-ratio:3/4;max-height:62vh;border-radius:var(--radius-md);}
+  .stage-idle p{font-size:12.5px;max-width:220px;}
+  .fs-btn{top:8px;right:8px;width:32px;height:32px;}
+
+  /* alert banners: wrap, never sit under the fullscreen button, readable size */
+  .alert-stack{padding-right:44px;}
+  .alert-banner{font-size:11px;line-height:1.35;flex-wrap:wrap;padding:0 10px;}
+  .alert-banner.show{padding:9px 10px;max-height:64px;}
+  .screen-flash-msg{font-size:clamp(15px,5vw,22px);}
+
+  .stage-footer-hint{flex-direction:column;align-items:flex-start;gap:4px;}
+  .hint-thresholds{gap:10px;flex-wrap:wrap;}
+
+  .dock{gap:8px;}
+  .dock .btn{padding:12px 10px;font-size:13.5px;}
+  .dock .btn.icon-only{width:44px;}
+
+  .panel{padding:12px;}
+  .dial-wrap{gap:14px;}
+  .dial{width:70px;height:70px;}
+  .dial svg{width:70px;height:70px;}
+
   .analytics-grid{grid-template-columns:1fr;}
   .summary-grid{grid-template-columns:1fr 1fr;}
   .modal-card{padding:22px 18px 20px;}
   .step-track{display:none;}
-  .report-row{gap:10px;}
+  .report-row{gap:10px;padding:12px;}
   .report-stat{min-width:52px;}
+  .report-stat span{font-size:13px;}
 }
 @media(max-width:420px){
-  .alerts-row{grid-template-columns:1fr 1fr;}
+  .alert-chip b{font-size:15px;}
   .dock{flex-wrap:wrap;}
+  .dock .btn-primary, .dock .btn-danger{flex:1 1 100%;order:2;}
+  .dock .icon-only{order:1;}
+  .stage{aspect-ratio:1/1.05;}
 }
+
+/* eye-ratio behaviour disabled on touch/mobile devices via JS toggling this class on body */
+body.no-drowsy .eye-chip,
+body.no-drowsy #rowEyeOpenness,
+body.no-drowsy .alert-banner.level-drowsy{display:none !important;}
 
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
