@@ -9,6 +9,7 @@
   --text:#EAF2F4;
   --text-dim:#93A4AE;
   --text-faint:#5A6873;
+  --green:#11d355;
   --cyan:#2FE0C4;
   --cyan-soft:#1FA090;
   --cyan-dim:#0E4F48;
@@ -472,7 +473,7 @@ button{font-family:inherit;}
   /* mobile-only: laptop-recommendation popup — larger card, black bg, bold red text */
   .top-toast{
     background:#000;
-    color:var(--red);
+    color:var(--green);
     font-weight:700;
     padding:36px 30px;
     border-radius:var(--radius-lg);
