@@ -62,6 +62,7 @@ const logList=$('logList'), logCount=$('logCount');
 const completionModal=$('completionModal'), doneName=$('doneName'), summaryGrid=$('summaryGrid');
 const dlReport=$('dlReport'), dlZip=$('dlZip'), reportSub=$('reportSub'), zipSub=$('zipSub'), reportGo=$('reportGo'), zipGo=$('zipGo');
 const closeCompletion=$('closeCompletion'), toast=$('toast'), fsBtn=$('fsBtn'), serialBtn=$('serialBtn');
+const topToast=$('topToast'), topToastMsg=$('topToastMsg');
 const fpsHint=$('fpsHint');
 const clockNow=$('clockNow'), sessionChip=$('sessionChip'), viewTitle=$('viewTitle');
 const sideStatusDot=$('sideStatusDot'), sideStatusValue=$('sideStatusValue');
@@ -73,6 +74,13 @@ $('thGaze').textContent = GAZE_THRESHOLD;
 const DIAL_CIRC = 276.5; // matches r=44 ring in the current index.html dial svg
 
 function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toast.classList.remove('show'),2600); }
+function showTopToast(msg, durationMs=4500){
+  if(!topToast || !topToastMsg) return;
+  topToastMsg.textContent = msg;
+  topToast.classList.add('show');
+  clearTimeout(showTopToast._t);
+  showTopToast._t = setTimeout(()=>topToast.classList.remove('show'), durationMs);
+}
 function fmtClock(sec){ const h=String(Math.floor(sec/3600)).padStart(2,'0'), m=String(Math.floor(sec/60)%60).padStart(2,'0'), s=String(Math.floor(sec)%60).padStart(2,'0'); return `${h}:${m}:${s}`; }
 function nowStamp(){ const d=new Date(); return d.toLocaleTimeString('en-GB',{hour12:false}); }
 function scoreOf(turns){ if(turns<=SUSPICIOUS_TURNS) return 0; return Math.min(Math.round(((turns-SUSPICIOUS_TURNS)/(MAX_TURNS-SUSPICIOUS_TURNS))*100),100); }
@@ -380,6 +388,7 @@ async function loadModels(){
     await new Promise(r=>setTimeout(r,350));
     loadScreen.classList.add('hidden');
     nameModal.classList.add('show');
+    showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 4500);
   }catch(err){
     cancelAnimationFrame(progRAF);
     clearTimeout(slowTimer);
