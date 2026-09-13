@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Sentinel &mdash; Exam Proctoring Console</title>
+<meta name="theme-color" content="#070B10" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap"></noscript>
+
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:,">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js" defer></script>
+</head>
+<body>
+
+<div id="loadScreen">
+  <div class="load-bg"></div>
+  <div class="brand-mark">
+    <div class="brand-logo-card"><div class="brand-logo-fill"></div></div>
+    <div class="brand-wordmark">Sentinel</div>
+    <div class="brand-subline">Proctoring System</div>
+  </div>
+  <div class="load-track-wrap">
+    <div class="load-track"><div id="loadBar"></div><span id="loadPct">0%</span></div>
+  </div>
+  <div id="loadText">initializing vision models&hellip;</div>
+</div>
+
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <div class="step-track">
+      <span class="step-chip active">Step 1: Profile confirmation</span>
+      <span class="step-sep">&rsaquo;</span>
+      <span class="step-chip">Step 2: Session check</span>
+      <span class="step-sep">&rsaquo;</span>
+      <span class="step-chip">Step 3: Final setup</span>
+    </div>
+    <h1>Before you begin</h1>
+    <p class="sub">Enter your full name exactly as it should appear on your exam integrity report. Your camera will be used only to monitor this session — nothing leaves your device except the files you choose to download.</p>
+    <label class="field-label" for="studentName">Full name</label>
+    <input class="field-input" id="studentName" placeholder="e.g. Ananya Roy" autocomplete="name" maxlength="60" />
+    <div class="field-hint" id="nameHint">&nbsp;</div>
+    <ul class="modal-checklist">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Camera and microphone access required</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Browser-based — no installation needed</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Session data is locally processed</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Automated data processing and report generation</li>
+    </ul>
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" id="nameSubmit" disabled>Continue &amp; enable camera</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card guide-card">
+    <div class="modal-kicker">Session guidelines</div>
+    <h1 id="guideName">A few things to avoid</h1>
+    <p class="sub">Quick watch — this shows exactly what Sentinel flags during a session, so there are no surprises.</p>
+
+    <video id="demoVideo" class="guide-video" src="demo-what-not-to-do.mp4" controls playsinline preload="auto"></video>
+    <button class="btn btn-ghost" id="replayVideoBtn" style="width:100%;margin-top:10px;display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" style="width:15px;height:15px;stroke:currentColor;margin-right:6px;"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+      Watch again
+    </button>
+
+    <ul class="modal-checklist guide-dont-list">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Turning or holding your head away from the screen</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Picking up, glancing at, or using your phone</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Covering your face with your hand, hair, or an object</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>Letting your eyes stay closed for extended periods</li>
+    </ul>
+
+    <div style="margin-top:20px;">
+      <button class="btn btn-primary" id="guideContinue">I understand — continue to exam</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark-mini"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2 3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4Z"/></svg></div>
+      <div>
+        <div class="brand-mark-title">Sentinel Console</div>
+      </div>
+    </div>
+
+    <div class="sidebar-profile">
+      <div class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+      <div class="who" id="whoLabel">&mdash;</div>
+      <div class="who-sub">Exam session</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" data-view="reports">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Reports
+      </button>
+    </nav>
+
+    <div class="sidebar-status">
+      <span class="status-dot" id="sideStatusDot"></span>
+      <div>
+        <div class="sidebar-status-label">Monitoring</div>
+        <div class="sidebar-status-value" id="sideStatusValue">Standby</div>
+      </div>
+    </div>
+  </aside>
+
+  <nav class="mobile-tabs">
+    <button class="nav-btn active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" data-view="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <span>Reports</span>
+    </button>
+  </nav>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-title" id="viewTitle">Dashboard</div>
+      <div class="topbar-right">
+        <span class="chip" id="clockNow">&mdash;</span>
+        <span class="chip" id="sessionChip">Session 00:00:00</span>
+        <div class="status-pill" id="statusPill"><span class="pulse"></span><span id="statusText">Standby</span></div>
+        <button class="icon-btn" id="serialBtn" title="Connect hardware indicator (optional, Chrome desktop)" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 9h16M4 15h16M9 4v4M15 4v4M9 16v4M15 16v4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="view" id="viewDashboard">
+
+      <div class="alerts-row alerts-row-compact">
+        <div class="alert-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><div><b id="statTotalAlerts">0</b><span>Total alerts</span></div></div>
+        <div class="alert-chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><div><b id="statHeadTurns">0</b><span>Head turns</span></div></div>
+        <div class="alert-chip eye-chip">
+          <div class="eye-chip-head"><span>Eye ratio</span><b id="mEarChip">&ndash;</b></div>
+          <div class="chart-box chart-box-mini"><canvas id="eyeRatioChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="stage-col">
+          <div class="stage" id="stage">
+            <video id="video" playsinline muted></video>
+            <canvas class="overlay" id="overlay"></canvas>
+            <div class="flash-ring" id="flashRing"></div>
+            <div class="screen-flash" id="screenFlash"><div class="screen-flash-msg" id="screenFlashMsg"></div></div>
+            <div class="alert-stack" id="alertStack"></div>
+            <button class="fs-btn" id="fsBtn" title="Fullscreen camera">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+            </button>
+            <div class="stage-idle" id="stageIdle">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><rect x="2" y="6" width="15" height="12" rx="2"/><path d="m22 8-5 4 5 4V8Z"/></svg>
+              <p>Camera preview will appear here once your session starts. Position yourself so your face is fully visible.</p>
+            </div>
+          </div>
+          <div class="stage-footer-hint">
+            <span class="hint-fps"><span id="fpsHint">&mdash;</span></span>
+            <div class="hint-thresholds">
+              <span class="hint-item">Head turn <b id="thYaw">22&deg;</b></span>
+              <span class="hint-item">Gaze offset <b id="thGaze">0.17</b> / 2s</span>
+            </div>
+          </div>
+
+          <div class="dock">
+            <button class="btn btn-outline-cyan icon-only" id="muteBtn" title="Mute alert sounds">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" id="muteIcon"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M19 9a5 5 0 0 1 0 6M22 6a9 9 0 0 1 0 12"/></svg>
+            </button>
+            <button class="btn btn-primary" id="startBtn">Start monitoring</button>
+            <button class="btn btn-danger" id="endBtn" style="display:none;">End session</button>
+          </div>
+        </div>
+
+        <div class="side">
+          <div class="panel panel-score">
+            <h3>Suspicion score</h3>
+            <div class="dial-wrap">
+              <div class="dial">
+                <svg width="104" height="104" viewBox="0 0 104 104">
+                  <circle class="dial-track" cx="52" cy="52" r="44" fill="none" stroke-width="9"/>
+                  <circle class="dial-fill" id="dialFill" cx="52" cy="52" r="44" fill="none" stroke-width="9" stroke-dasharray="276.5" stroke-dashoffset="276.5"/>
+                </svg>
+                <div class="dial-num"><b id="scoreNum">0</b></div>
+              </div>
+              <div class="dial-meta">
+                <div class="risk" id="riskLabel">Low risk</div>
+                <div class="turns" id="turnsLabel">0 head turns</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Session timer</h3>
+            <div class="timer-box"><b id="sessionTimer">00:00:00</b><span id="sessionState">not started</span></div>
+          </div>
+
+          <div class="panel">
+            <h3>Live signals</h3>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--cyan)"></span>Face detected</div><div class="val ok" id="mFace">&ndash;</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--blue)"></span>Head direction</div><div class="val" id="mHead">center</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--violet)"></span>Gaze direction</div><div class="val" id="mGaze">center</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--amber)"></span>Eye openness</div><div class="val" id="mEar">&ndash;</div></div>
+            <div class="metric-row"><div class="lbl"><span class="sw" style="background:var(--red)"></span>Phone detected</div><div class="val" id="mPhone">no</div></div>
+          </div>
+
+          <div class="panel">
+            <h3>Detailed event log <span id="logCount" style="color:var(--text-faint);font-weight:400;">0 events</span></h3>
+            <div class="log-list" id="logList"><div class="log-empty">No incidents yet &mdash; stay focused and you'll see nothing here.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="viewReports" hidden>
+      <div class="panel reports-panel">
+        <h3>Completed sessions <button class="btn btn-ghost btn-tiny" id="clearReportsBtn">Clear history</button></h3>
+        <div id="reportsEmpty" class="log-empty" style="padding:20px 0;">No sessions completed yet. Reports appear here after you end a monitoring session.</div>
+        <div id="reportsList" class="reports-list"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modal-overlay" id="completionModal">
+  <div class="modal-card completion-card">
+    <div class="done-badge"><svg viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="modal-kicker">Session complete</div>
+    <h1 id="doneName">Session summary</h1>
+    <p class="sub">Your exam integrity report has been compiled. Review the numbers below, then download your files.</p>
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <div class="download-row">
+      <button class="download-btn" id="dlReport">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <div class="tx"><b>Integrity report (.docx)</b><span id="reportSub">Preparing&hellip;</span></div>
+        <div class="go" id="reportGo"><div class="spin"></div></div>
+      </button>
+      <button class="download-btn" id="dlZip">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M21 8v13H3V8M1 3h22v5H1zM10 12h4"/></svg></div>
+        <div class="tx"><b>Evidence photos (.zip)</b><span id="zipSub">Preparing&hellip;</span></div>
+        <div class="go" id="zipGo"><div class="spin"></div></div>
+      </button>
+    </div>
+
+    <div class="analytics-heading">Detailed session analytics</div>
+    <div class="analytics-grid">
+      <div class="analytics-card">
+        <div class="analytics-title">Alert frequency by type</div>
+        <div class="chart-box"><canvas id="alertFreqChart"></canvas></div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-title">Head turn direction</div>
+        <div class="chart-box"><canvas id="headTurnDirChart"></canvas></div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button class="btn btn-ghost" style="width:100%;" id="closeCompletion">Close &amp; return to dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
+
