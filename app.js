@@ -74,7 +74,7 @@ $('thGaze').textContent = GAZE_THRESHOLD;
 const DIAL_CIRC = 276.5; // matches r=44 ring in the current index.html dial svg
 
 function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>toast.classList.remove('show'),2600); }
-function showTopToast(msg, durationMs=4500){
+function showTopToast(msg, durationMs=8000){
   if(!topToast || !topToastMsg) return;
   topToastMsg.textContent = msg;
   topToast.classList.add('show');
@@ -326,7 +326,7 @@ function captureEvidence(stampTitle, stampColor){
     sctx.font='14px Arial'; sctx.fillStyle='rgba(255,255,255,.85)';
     sctx.fillText(new Date().toLocaleString(), 16, 54);
   }
-  return { ts: nowStamp(), dataUrl: snapCanvas.toDataURL('image/jpeg',0.85) };
+  return { ts: nowStamp(), dataUrl: snapCanvas.toDataURL('image/jpeg',0.85), w, h };
 }
 function pushEvidence(arr, entry, cap){ if(arr.length<cap) arr.push(entry); }
 
@@ -388,7 +388,7 @@ async function loadModels(){
     await new Promise(r=>setTimeout(r,350));
     loadScreen.classList.add('hidden');
     nameModal.classList.add('show');
-    showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 4500);
+    showTopToast('For the best experience, open Sentinel on a laptop — mobile support is in beta.', 8000);
   }catch(err){
     cancelAnimationFrame(progRAF);
     clearTimeout(slowTimer);
@@ -879,7 +879,13 @@ async function buildReport(){
       }
       entries.forEach((e,i)=>{
         out.push(new Paragraph({children:[new TextRun({text:`Incident ${i+1} \u2014 ${e.ts}`,bold:true,size:20})]}));
-        out.push(new Paragraph({spacing:{after:160}, children:[new ImageRun({ data:dataUrlToUint8(e.dataUrl), transformation:{width:440,height:248}, type:"jpg" })]}));
+        // Keep each photo's original aspect ratio (mobile shots are often portrait)
+        // instead of forcing a fixed landscape box, which stretched them.
+        const maxW=440, maxH=560;
+        let dw=e.w||1280, dh=e.h||720;
+        const scale=Math.min(maxW/dw, maxH/dh);
+        dw=Math.round(dw*scale); dh=Math.round(dh*scale);
+        out.push(new Paragraph({spacing:{after:160}, children:[new ImageRun({ data:dataUrlToUint8(e.dataUrl), transformation:{width:dw,height:dh}, type:"jpg" })]}));
       });
       return out;
     }
