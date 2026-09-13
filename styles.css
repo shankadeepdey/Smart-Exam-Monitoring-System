@@ -397,13 +397,22 @@ button{font-family:inherit;}
   .eye-chip{grid-column:1 / -1;}
 }
 @media(max-width:768px){
+  /* #app is a row-flex by default (sidebar | tabs | content). With the sidebar
+     hidden, the tab bar and the main content must stack top-to-bottom instead
+     of sitting side-by-side — otherwise the tab bar stretches to full page
+     height as a thin vertical strip instead of a compact top bar. */
+  #app.active{flex-direction:column;}
   .sidebar{display:none;}
   .mobile-tabs{
     display:flex;position:sticky;top:0;z-index:41;background:var(--bg);
-    border-bottom:1px solid var(--border-soft);padding:8px 12px;gap:8px;
+    border-bottom:1px solid var(--border-soft);padding:6px 10px;gap:8px;
+    width:100%;flex:none;max-width:100vw;
   }
-  .mobile-tabs .nav-btn{flex:1;flex-direction:column;gap:4px;align-items:center;font-size:11px;padding:8px 4px;}
-  .mobile-tabs .nav-btn svg{width:18px;height:18px;}
+  .mobile-tabs .nav-btn{
+    flex:1;flex-direction:row;gap:6px;align-items:center;justify-content:center;
+    font-size:12.5px;padding:9px 6px;border-radius:var(--radius-sm);max-width:180px;
+  }
+  .mobile-tabs .nav-btn svg{width:16px;height:16px;}
   .topbar{padding:10px 14px;flex-wrap:nowrap;gap:8px;}
   .topbar-title{font-size:15px;flex:none;}
   .topbar-right{gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;justify-content:flex-end;}
